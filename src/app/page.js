@@ -1,7 +1,7 @@
 'use client' // Client-side component
 
 import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, Button, Modal, TextField } from '@mui/material'
+import { Box, Stack, Typography, Button, Modal, TextField, InputLabel, Select, MenuItem, FormControl } from '@mui/material'
 import { firestore } from './firebase'
 import {
   collection,
@@ -35,20 +35,32 @@ export default function Home() {
   const [inventory, setInventory] = useState([])
   const [open, setOpen] = useState(false)
   const [itemName, setItemName] = useState('')
+  const [itemQuantity, setItemQuantity] = useState(1)
 
   // Modal state control functions 
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
+  const handleQuantityChange = (event) => {
+    setItemQuantity(event.target.value)
+  }
+
   // Add item function
-const addItem = async (item) => {
+const addItem = async (item, quantity) => {
+  if (!item || typeof quantity !== 'number' || isNaN(quantity)) {
+    console.error('Invalid item name or quantity');
+    return;
+  }
+
   const docRef = doc(collection(firestore, 'inventory'), item)
   const docSnap = await getDoc(docRef)
+
   if (docSnap.exists()) {
-    const { quantity } = docSnap.data()
-    await setDoc(docRef, { quantity: quantity + 1})
+    //const existingQuantity = docSnap.data().quantity || 0;
+    const { quantity: existingQuantity } = docSnap.data()
+    await setDoc(docRef, { quantity: existingQuantity + quantity}, { merge: true });
   } else {
-    await setDoc(docRef, { quantity: 1})
+    await setDoc(docRef, { quantity: quantity})
   }
   await updateInventory()
 }
@@ -114,11 +126,28 @@ const removeItem = async (item) => {
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
             />
+            <FormControl fullWidth>
+              <InputLabel id="demo-simple-select-label">Quantity</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={itemQuantity}
+                label="Quantity"
+                onChange={handleQuantityChange}
+              >
+                <MenuItem value={1}>1</MenuItem>
+                <MenuItem value={2}>2</MenuItem>
+                <MenuItem value={3}>3</MenuItem>
+                <MenuItem value={4}>4</MenuItem>
+                <MenuItem value={5}>5</MenuItem>
+              </Select>
+            </FormControl>
             <Button
               variant="outlined"
               onClick={() => {
-                addItem(itemName)
+                addItem(itemName, itemQuantity)
                 setItemName('')
+                setItemQuantity(1)
                 handleClose()
               }}
             >
@@ -127,8 +156,8 @@ const removeItem = async (item) => {
           </Stack>
         </Box>
       </Modal>
-      <Button variant="contained" onClick={handleOpen}>
-        Add New Item
+      <Button variant="contained" onClick={handleOpen} color="adding">
+        Add Item
       </Button>
       <Box border={'1px solid #333'}>
         <Box
@@ -143,7 +172,7 @@ const removeItem = async (item) => {
             Current Inventory
           </Typography>
         </Box>
-        <Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
+        <Stack width="800px" height="465px" spacing={1} overflow={'auto'}>
           {inventory.map(({name, quantity}) => (
             <Box
               key={name}
@@ -161,13 +190,14 @@ const removeItem = async (item) => {
               <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
                 Quantity: {quantity}
               </Typography>
-              <Button variant="contained" onClick={() => removeItem(name)}>
+              <Button variant="contained" onClick={() => removeItem(name)} color="removing">
                 Remove
               </Button>
             </Box>
           ))}
         </Stack>
       </Box>
+      test
     </Box>
   )
 }
