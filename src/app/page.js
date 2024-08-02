@@ -28,19 +28,19 @@ const style = {
   gap: 3,
 }
 
-
+//Each inventory item gets its own Box in the scrollable Stack
 export default function Home() {
 
-  // State management 
+  // State variables and setter functions
   const [inventory, setInventory] = useState([])
   const [open, setOpen] = useState(false)
   const [itemName, setItemName] = useState('')
 
-  // Modal functions
+  // Modal state control functions 
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
-  // Add and remove item functions
+  // Add item function
 const addItem = async (item) => {
   const docRef = doc(collection(firestore, 'inventory'), item)
   const docSnap = await getDoc(docRef)
@@ -53,6 +53,7 @@ const addItem = async (item) => {
   await updateInventory()
 }
 
+// Remove item function
 const removeItem = async (item) => {
   const docRef = doc(collection(firestore, 'inventory'), item)
   const docSnap = await getDoc(docRef)
@@ -67,6 +68,7 @@ const removeItem = async (item) => {
   await updateInventory()
 }
 
+  // Inventory fetching from Firestore to local state
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'))
     const docs = await getDocs(snapshot)
@@ -81,9 +83,9 @@ const removeItem = async (item) => {
     updateInventory()
   }, [])
 
-  // Component logic
   return (
     <Box
+    // Flex container to center content
       width="100vw"
       height="100vh"
       display={'flex'}
@@ -93,6 +95,7 @@ const removeItem = async (item) => {
       gap={2}
     >
       <Modal
+      // Contains form for adding new items, visibility controlled by state
         open={open}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
@@ -131,13 +134,13 @@ const removeItem = async (item) => {
         <Box
           width="800px"
           height="100px"
-          bgcolor={'#ADD8E6'}
+          bgcolor={'#ffab00'}
           display={'flex'}
           justifyContent={'center'}
           alignItems={'center'}
         >
           <Typography variant={'h2'} color={'#333'} textAlign={'center'}>
-            Inventory Items
+            Current Inventory
           </Typography>
         </Box>
         <Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
