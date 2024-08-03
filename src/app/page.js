@@ -1,7 +1,8 @@
 'use client' // Client-side component
 
 import { useState, useEffect } from 'react'
-import { Box, Stack, Typography, Button, Modal, TextField, InputLabel, Select, MenuItem, FormControl } from '@mui/material'
+import { Box, Stack, Typography, Button, Modal, TextField, InputLabel, Select, MenuItem, FormControl, InputAdornment } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search';
 import { firestore } from './firebase'
 import {
   collection,
@@ -36,6 +37,7 @@ export default function Home() {
   const [open, setOpen] = useState(false)
   const [itemName, setItemName] = useState('')
   const [itemQuantity, setItemQuantity] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
 
   // Modal state control functions 
   const handleOpen = () => setOpen(true)
@@ -172,22 +174,26 @@ const removeItem = async (item) => {
             Current Inventory
           </Typography>
         </Box>
-        <Stack width="800px" height="465px" spacing={1} overflow={'auto'}>
-          {inventory.map(({name, quantity}) => (
+        <Stack width="800px" height="424px" spacing={1} overflow={'auto'}>
+          {inventory
+          .filter(({name}) => 
+            name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+          .map(({name, quantity}) => (
             <Box
               key={name}
               width="100%"
-              minHeight="150px"
+              minHeight="100px"
               display={'flex'}
               justifyContent={'space-between'}
               alignItems={'center'}
               bgcolor={'#f0f0f0'}
               paddingX={5}
             >
-              <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
+              <Typography variant={'h4'} color={'#333'} textAlign={'center'}>
                 {name.charAt(0).toUpperCase() + name.slice(1)}
               </Typography>
-              <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
+              <Typography variant={'h4'} color={'#333'} textAlign={'center'}>
                 Quantity: {quantity}
               </Typography>
               <Button variant="contained" onClick={() => removeItem(name)} color="removing">
@@ -197,7 +203,27 @@ const removeItem = async (item) => {
           ))}
         </Stack>
       </Box>
-      test
+      <Box
+        width="800px"
+        display="flex"
+        justifyContent="center"
+        mt={2}
+      >
+         <TextField
+          fullWidth
+          variant="outlined"
+          label="Search Inventory"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
     </Box>
   )
 }
